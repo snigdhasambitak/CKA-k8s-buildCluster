@@ -1,8 +1,7 @@
 
 # CKA-k8s-buildCluster : Building a Kubernetes Cluster with Kubeadm for CKA exam
 
-
-Your team is ready to deploy the first version of their new online storefront. The team is anticipating the potential for a high degree of customer usage after deployment, and they want to make use of Kubernetes in order to enable them to respond quickly to changing needs. In order to do this, they need a new Kubernetes cluster. You have been given the task of quickly spinning up a working Kubernetes cluster with one master and two worker nodes.
+You have been given the task of quickly spinning up a working Kubernetes cluster with one master and two worker nodes.
 
 ## install Docker on all three nodes.
 
