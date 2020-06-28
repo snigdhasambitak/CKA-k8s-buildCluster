@@ -1,9 +1,72 @@
 
 # CKA-k8s-buildCluster : Building a Kubernetes Cluster with Kubeadm for CKA exam
 
+##  Create 3 Virtual Machines for your Kubernetes cluster
+
 You have been given the task of quickly spinning up a working Kubernetes cluster with one master and two worker nodes.
 
-## install Docker on all three nodes.
+### Dependencies
+
+You should install [VirtualBox](https://www.virtualbox.org/wiki/Downloads) and [Vagrant](https://www.vagrantup.com/downloads.html)  before you start.
+
+You can spin up 3 nodes by creating a `Vagrantfile`
+
+#### Creating a Vagrantfile
+
+Use the text editor of your choice and create a file with named Vagrantfile, inserting the code below. The value of N denotes the number of nodes present in the cluster, it can be modified accordingly. In the below example, we are setting the value of N as 2.
+
+```sh
+IMAGE_NAME = "bento/ubuntu-16.04"
+N = 2
+
+Vagrant.configure("2") do |config|
+    config.ssh.insert_key = false
+
+    config.vm.provider "virtualbox" do |v|
+        v.memory = 1024
+        v.cpus = 2
+    end
+
+    config.vm.define "k8s-master" do |master|
+        master.vm.box = IMAGE_NAME
+        master.vm.network "private_network", ip: "192.168.50.10"
+        master.vm.hostname = "k8s-master"
+        master.vm.provision "ansible" do |ansible|
+            ansible.playbook = "kubernetes-setup/master-playbook.yml"
+            ansible.extra_vars = {
+                node_ip: "192.168.50.10",
+            }
+        end
+    end
+
+    (1..N).each do |i|
+        config.vm.define "node-#{i}" do |node|
+            node.vm.box = IMAGE_NAME
+            node.vm.network "private_network", ip: "192.168.50.#{i + 10}"
+            node.vm.hostname = "node-#{i}"
+            node.vm.provision "ansible" do |ansible|
+                ansible.playbook = "kubernetes-setup/node-playbook.yml"
+                ansible.extra_vars = {
+                    node_ip: "192.168.50.#{i + 10}",
+                }
+            end
+        end
+    end
+```
+
+You can create the cluster with:
+
+```sh
+$ vagrant up
+```
+You can delete the cluster with:
+
+```sh
+$ vagrant destroy
+```
+
+
+## Install Docker on all three nodes.
 
 * Do the following on all three nodes:
 
@@ -68,7 +131,7 @@ This command should return both a `Client Version` and a `Server Version`.
 
 ## Join the two Kube worker nodes to the cluster.
 
-* Copy the kubeadm join command that was printed by the kubeadm init command earlier, with the token and hash. Run this command on both worker nodes, but make sure you add sudo in front of it:
+* Copy the `kubeadm join` command that was printed by the `kubeadm init` command earlier, with the token and hash. Run this command on both worker nodes, but make sure you add `sudo` in front of it:
 
 ```sh
 sudo kubeadm join $some_ip:6443 --token $some_token --discovery-token-ca-cert-hash $some_hash
